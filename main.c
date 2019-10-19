@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-//#include <sys/wait.h>
+#include <sys/wait.h>
 
 #include "utils.h"
 
@@ -174,16 +174,15 @@ int main() {
 
         const char** parsed_commands = parse_command(command_buff);
 
-        free_commands(parsed_commands);
-
         pid_t pid = fork();
         if (pid == -1) {
             print_error(FORKING_ERROR);
         } else if (pid == CHILD_PROCESS) {
-            if (execvp(parsed_commands[0], parsed_commands) == -1) {
+            if (execvp(parsed_commands[0], (char * const *) parsed_commands) == -1) {
                 print_error(EXEC_ERROR);
             }
         } else {
+            free_commands(parsed_commands);
             if (waitpid(pid, &status, 0) == -1) {
                 print_error(WAIT_ERROR);
             }
