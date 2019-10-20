@@ -2,14 +2,70 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include<signal.h>
 #include <sys/wait.h>
 
 #include "utils.h"
 
 #define COMMAND_BUFF_SIZE 256
 
-int main()
-{
+pid_t process_in_fg = 0;
+void signal_handler(int sig) {
+    printf("FG Process id: %d\n", process_in_fg);
+    switch(sig) {
+      case SIGINT:
+            printf("SIGINT received \n");
+            if (process_in_fg > 0) {
+                kill(process_in_fg, SIGINT);
+            }
+            break;
+        case SIGTSTP:
+            printf("SIGTSTP received \n");
+            if (process_in_fg > 0) {
+                kill(process_in_fg, SIGTSTP);
+            }
+            break;
+  }
+}
+
+void init_handler(){
+    struct sigaction sa;
+
+    sa.sa_handler = signal_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+
+    if(sigaction(SIGINT, &sa, NULL) == -1)
+        printf("Couldn't catch SIGINT - Interrupt Signal\n");
+    if(sigaction(SIGTSTP, &sa, NULL) == -1)
+        printf("Couldn't catch SIGTSTP - Suspension Signal\n");
+}
+
+void handler(int sig) {
+    printf("Received, yeaaah\n");
+}
+
+int main() {
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        signal(SIGINT, handler);
+        char* cmds[] = { "./work.sh", NULL };
+        if (execvp(cmds[0], cmds) == -1) {
+            print_error(EXEC_ERROR);
+            exit(1);
+        }
+    } else {
+        sleep(5);
+        kill(pid, SIGINT);
+    }
+
+    return 0;
+
+
+
+    init_handler();
+
     print_greeting();
 
     Status status;
@@ -52,15 +108,21 @@ int main()
                 print_error(EXEC_ERROR);
                 exit(1);
             }
-        } else {
-            free_commands(parsed_commands);
+        } else if(pid > 0){ //Parent
+            process_in_fg = pid;
 
-            if (should_detach) {
-                continue;
-            }
+            setpgid(pid, pid);
 
-            if (waitpid(pid, &status, 0) == -1) {
-                print_error(WAIT_ERROR);
+            // Waits if background flag not activated.
+            if(!should_detach){
+                // WUNTRACED used to stop waiting when suspended
+                waitpid(pid, &status, WUNTRACED);
+
+                if (WIFEXITED(status)) {
+                    printf("Exited with %d\n", WEXITSTATUS(status));
+                } else if(WIFSIGNALED(status)){
+                    printf("Process received SIGNAL %d\n", WTERMSIG(status));
+                }
             }
         }
     }
