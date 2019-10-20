@@ -6,5 +6,5 @@ while true
 do
     ((COUNTER+=1))
     echo "#${COUNTER} Working..."
-    sleep 1
+    sleep 2
 done

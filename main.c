@@ -54,6 +54,11 @@ int main()
             }
         } else {
             free_commands(parsed_commands);
+
+            if (should_detach) {
+                continue;
+            }
+
             if (waitpid(pid, &status, 0) == -1) {
                 print_error(WAIT_ERROR);
             }
