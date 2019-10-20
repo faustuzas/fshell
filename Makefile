@@ -1,6 +1,6 @@
 CC 	   = gcc
 CFLAGS = -g -Wall
-SRC    = main.c
+SRC    = main.c utils.c
 # HDR    = $(SRC:.c=.h)
 OBJS   = $(SRC:.c=.o)
 

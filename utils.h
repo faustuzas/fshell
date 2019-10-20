@@ -18,7 +18,17 @@
 #define for_ever while(1)
 
 #define CMD_EXIT "exit"
+#define CMD_CHDIR "cd"
 
 #define CHILD_PROCESS 0
+
+Status get_command(char *buff, size_t size);
+void print_error(Status status);
+void print_greeting();
+void exit_shell();
+void trim(char *str);
+const char** parse_command(char *command);
+void free_commands(const char** commands);
+void print_goodbye();
 
 #endif
