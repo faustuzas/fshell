@@ -19,6 +19,8 @@
 #define RESUMING_ERROR 8
 #define TERMINATION_ERROR 9
 
+void print_error(Status status);
+
 #define PROMPT ">"
 #define DETACH "&"
 
@@ -33,9 +35,9 @@
 #define CHILD_PROCESS 0
 
 #define streq(X, Y) strncmp((X), (Y), strlen((Y))) == 0
+#define check(X) if((X) != OK) { print_error((X)); }
 
 Status get_command(char *buff, size_t size);
-void print_error(Status status);
 void print_greeting();
 void trim(char *str);
 char** parse_command(char *command);

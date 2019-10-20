@@ -52,6 +52,18 @@ void print_error(Status status) {
         case WAIT_ERROR:
             fprintf(stderr, "\nError: Cannot wait for process\n");
             break;
+        case TOO_MUCH_PROCESSES:
+            fprintf(stderr, "\nError: Too much processes created\n");
+            break;
+        case SUSPENSION_ERROR:
+            fprintf(stderr, "\nError: Cannot suspend process\n");
+            break;
+        case RESUMING_ERROR:
+            fprintf(stderr, "\nError: Cannot resume process\n");
+            break;
+        case TERMINATION_ERROR:
+            fprintf(stderr, "\nError: Cannot terminate process\n");
+            break;
         default:
             break;
     }

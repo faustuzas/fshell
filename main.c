@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include<signal.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 
@@ -17,12 +17,12 @@ void signal_handler(int sig) {
     switch (sig) {
         case SIGINT:
             if (process_in_fg > 0) {
-                remove_process(process_in_fg);
+                check(kill_process(process_in_fg));
             }
             break;
         case SIGTSTP:
             if (process_in_fg > 0) {
-                suspend_process(process_in_fg);
+                check(suspend_process(process_in_fg));
                 break;
             }
     }
@@ -35,20 +35,22 @@ void init_handler() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
 
-    if(sigaction(SIGINT, &sa, NULL) == -1)
+
+    // TODO: fix this place
+    if(sigaction(SIGINT, &sa, NULL) == -1) {
         printf("Couldn't catch SIGINT - Interrupt Signal\n");
-    if(sigaction(SIGTSTP, &sa, NULL) == -1)
+    }
+
+    if(sigaction(SIGTSTP, &sa, NULL) == -1) {
         printf("Couldn't catch SIGTSTP - Suspension Signal\n");
+    }
 }
 
 void wait_process(pid_t pid) {
-    // WUNTRACED used to stop waiting when suspended
     int status;
     waitpid(pid, &status, WUNTRACED);
-
     if (WIFEXITED(status)) {
         remove_process(pid);
-        printf("Exited with %d\n", WEXITSTATUS(status));
     } else if(WIFSIGNALED(status)){
         printf("Process received SIGNAL %d\n", WTERMSIG(status));
     }
@@ -100,7 +102,7 @@ int main() {
             if (args_count == 1) {
                 pid = get_last_suspended_process();
             } else if (args_count == 2) {
-                pid = strtol(parsed_commands[1]);
+                pid = strtol(parsed_commands[1], NULL, 0);
             } else {
                 free_commands(parsed_commands);
                 printf("Usage of %s: %s [pid]\n", cmd, cmd);
@@ -108,8 +110,9 @@ int main() {
             }
 
             process_in_fg = pid;
+            printf("PID: %d\n", pid);
             if (is_process_suspended(pid)) {
-                resume_process(pid);
+                check(resume_process(pid));
             }
 
             if (streq(cmd, CMD_FG)) {
@@ -137,14 +140,14 @@ int main() {
             print_error(FORKING_ERROR);
         } else if (pid == CHILD_PROCESS) {
             setpgid(0, 0);
-            add_process(pid, command_buff);
-            process_in_fg = -1;
-            execvp(parsed_commands[0], (const char *const *)parsed_commands);
+            execvp(parsed_commands[0], (char* const *)parsed_commands);
             print_error(EXEC_ERROR);
             exit(1);
         } else if(pid > 0) {
             process_in_fg = pid;
+            check(add_process(pid, command_buff));
             if (should_detach) {
+                process_in_fg = -1;
                 printf("Detached process id: %d\n", pid);
             } else {
                 wait_process(pid);

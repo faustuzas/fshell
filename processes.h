@@ -5,7 +5,8 @@
 #include "utils.h"
 
 Status add_process(pid_t pid, char* command);
-Status remove_process(pid_t pid);
+void remove_process(pid_t pid);
+Status kill_process(pid_t pid);
 Status resume_process(pid_t pid);
 Status suspend_process(pid_t pid);
 
