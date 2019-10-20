@@ -26,7 +26,7 @@ int main()
             continue;
         }
 
-        const char **parsed_commands = parse_command(command_buff);
+        char **parsed_commands = parse_command(command_buff);
         if (strncmp(parsed_commands[0], CMD_EXIT, strlen(CMD_EXIT)) == 0) {
             free_commands(parsed_commands);
             print_goodbye();
@@ -37,6 +37,11 @@ int main()
             chdir(parsed_commands[1]);
             free_commands(parsed_commands);
             continue;
+        }
+
+        bool should_detach = should_detach_process(parsed_commands);
+        if (should_detach) {
+            clean_detachment_symbol(parsed_commands);
         }
 
         pid_t pid = fork();

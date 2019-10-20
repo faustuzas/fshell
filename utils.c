@@ -95,7 +95,7 @@ void trim(char *str) {
     }
 }
 
-const char** parse_command(char *command) {
+char** parse_command(char *command) {
     size_t command_size = strlen(command);
 
     // find out how many separate commands there are
@@ -109,7 +109,7 @@ const char** parse_command(char *command) {
         index++;
     }
 
-    const char** commands = malloc((commands_count + 1) * sizeof(char *));
+    char** commands = malloc((commands_count + 1) * sizeof(char *));
 
     index = 0;
     int front_index = 0;
@@ -141,12 +141,41 @@ const char** parse_command(char *command) {
     return commands;
 }
 
-void free_commands(const char** commands) {
-    const char* command;
+void free_commands(char** commands) {
+    char* command;
     int index = 0;
     while ((command = commands[index++]) != NULL) {
         free((char*)command);
     }
 
     free(commands);
+}
+
+int find_null_index(char** commands) {
+    int last_index = 0;
+    while (commands[last_index] != NULL) {
+        last_index += 1;
+    }
+    return last_index;
+}
+
+bool should_detach_process(char** commands) {
+    int last_index = find_null_index(commands) - 1;
+
+    // check if process should be detached
+    if (last_index >= 1 && strncmp(commands[last_index], DETACH, strlen(DETACH)) == 0) {
+        return true;
+    }
+
+    return false;
+}
+
+void clean_detachment_symbol(char** commands) {
+    int detachment_symbol_index = find_null_index(commands) - 1;
+    if (detachment_symbol_index <= 1) {
+        return;
+    }
+
+    free(commands[detachment_symbol_index]);
+    commands[detachment_symbol_index] = NULL;
 }

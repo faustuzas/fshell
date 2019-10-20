@@ -14,6 +14,7 @@
 #define WAIT_ERROR 5
 
 #define PROMPT ">"
+#define DETACH "&"
 
 #define for_ever while(1)
 
@@ -27,8 +28,10 @@ void print_error(Status status);
 void print_greeting();
 void exit_shell();
 void trim(char *str);
-const char** parse_command(char *command);
-void free_commands(const char** commands);
+char** parse_command(char *command);
+void free_commands(char** commands);
 void print_goodbye();
+bool should_detach_process(char** commands);
+void clean_detachment_symbol(char** commands);
 
 #endif
