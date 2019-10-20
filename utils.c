@@ -38,19 +38,19 @@ Status get_command(char *buff, size_t size) {
 void print_error(Status status) {
     switch (status) {
         case NO_INPUT:
-            fprintf(stderr, "Error: No input provided\n");
+            fprintf(stderr, "\nError: No input provided\n");
             break;
         case TOO_LONG:
-            fprintf(stderr, "Error: Too long input\n");
+            fprintf(stderr, "\nError: Too long input\n");
             break;
         case FORKING_ERROR:
-            fprintf(stderr, "Error: Cannot fork process\n");
+            fprintf(stderr, "\nError: Cannot fork process\n");
             break;
         case EXEC_ERROR:
-            fprintf(stderr, "Error: Cannot exec command\n");
+            fprintf(stderr, "\nError: Cannot exec command\n");
             break;
         case WAIT_ERROR:
-            fprintf(stderr, "Error: Cannot wait for process\n");
+            fprintf(stderr, "\nError: Cannot wait for process\n");
             break;
         default:
             break;

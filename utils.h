@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <string.h>
+
 #define bool int
 #define true 1
 #define false 0
@@ -20,8 +22,11 @@
 
 #define CMD_EXIT "exit"
 #define CMD_CHDIR "cd"
+#define CMD_FG "fg"
 
 #define CHILD_PROCESS 0
+
+#define streq(X, Y) strncmp((X), (Y), strlen((Y))) == 0
 
 Status get_command(char *buff, size_t size);
 void print_error(Status status);
@@ -33,5 +38,6 @@ void free_commands(char** commands);
 void print_goodbye();
 bool should_detach_process(char** commands);
 void clean_detachment_symbol(char** commands);
+int find_null_index(char** commands);
 
 #endif
