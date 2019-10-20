@@ -3,4 +3,4 @@ project(fshell C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(fshell main.c utils.c)
+add_executable(fshell main.c utils.c processes.c)

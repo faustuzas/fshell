@@ -14,6 +14,10 @@
 #define FORKING_ERROR 3
 #define EXEC_ERROR 4
 #define WAIT_ERROR 5
+#define TOO_MUCH_PROCESSES 6
+#define SUSPENSION_ERROR 7
+#define RESUMING_ERROR 8
+#define TERMINATION_ERROR 9
 
 #define PROMPT ">"
 #define DETACH "&"
@@ -23,6 +27,8 @@
 #define CMD_EXIT "exit"
 #define CMD_CHDIR "cd"
 #define CMD_FG "fg"
+#define CMD_BG "bg"
+#define CMD_JOBS "jobs"
 
 #define CHILD_PROCESS 0
 
@@ -31,7 +37,6 @@
 Status get_command(char *buff, size_t size);
 void print_error(Status status);
 void print_greeting();
-void exit_shell();
 void trim(char *str);
 char** parse_command(char *command);
 void free_commands(char** commands);

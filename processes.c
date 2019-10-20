@@ -1,0 +1,154 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+
+#include "processes.h"
+
+#define p_status int
+#define RUNNING 0
+#define SUSPENDED 1
+
+#define MAX_SUSPENDED_PROCESSES 10
+
+typedef struct process {
+    pid_t pid;
+    int pipe_fds[2];
+    p_status status;
+    char* name;
+} Process;
+
+Process* processes[MAX_SUSPENDED_PROCESSES] = {NULL };
+pid_t last_suspended_process = -1;
+
+pid_t get_last_suspended_process() {
+    return last_suspended_process;
+}
+
+int next_index() {
+    for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+        if (processes[i] == NULL) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+char* named_status(p_status status) {
+    switch (status) {
+        case SUSPENDED:
+            return "SUSPENDED";
+        case RUNNING:
+            return RUNNING;
+        default:
+            return "UNRECOGNIZED";
+    }
+}
+
+bool is_process_suspended(pid_t pid) {
+    for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+        Process* p = processes[i];
+        if (p != NULL && p->pid == pid && p->status == SUSPENDED) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Status add_process(pid_t pid, char* command) {
+    int index = next_index();
+    if (index == -1) {
+        return TOO_MUCH_PROCESSES;
+    }
+
+    Process* p = malloc(sizeof(processes));
+    p->pid = pid;
+    p->status = RUNNING;
+    p->name = malloc(sizeof(char) * strlen(command));
+    strcpy(p->name, command);
+
+    processes[index] = p;
+
+    return OK;
+}
+
+Status suspend_process(pid_t pid) {
+    if (kill(pid, SIGTSTP) == 0) {
+        for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+            Process* p = processes[i];
+            if (p != NULL && p->pid == pid) {
+                p->status = SUSPENDED;
+                break;
+            }
+        }
+
+        last_suspended_process = pid;
+
+        return OK;
+    }
+
+    return SUSPENSION_ERROR;
+}
+
+Status resume_process(pid_t pid) {
+    if (kill(pid, SIGCONT) == 0) {
+        for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+            Process* p = processes[i];
+            if (p != NULL && p->pid == pid) {
+                p->status = RUNNING;
+                break;
+            }
+        }
+
+        last_suspended_process = pid;
+
+        return OK;
+    }
+
+    return RESUMING_ERROR;
+}
+
+Status remove_process(pid_t pid) {
+    if (kill(pid, SIGINT) == 0) {
+        for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+            Process* p = processes[i];
+            if (p != NULL && p->pid == pid) {
+
+                free(p);
+                processes[i] = NULL;
+            }
+        }
+
+        return OK;
+    }
+
+    return TERMINATION_ERROR;
+}
+
+void print_processes() {
+    printf("%10s | %10s | %10s\n", "PID", "STATUS", "NAME");
+    for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+        Process* p = processes[i];
+        if (p == NULL ) {
+            continue;
+        }
+
+        printf("%10d | %10s | %10s\n", p->pid, named_status(p->status), p->name);
+    }
+}
+
+
+void clean_processes() {
+    for (int i = 0; i < MAX_SUSPENDED_PROCESSES; ++i) {
+        Process* p = processes[i];
+        if (p == NULL) {
+            continue;
+        }
+
+        free(p->name);
+        free(p);
+    }
+}
+
+
