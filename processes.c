@@ -128,6 +128,10 @@ Status resume_process(pid_t pid) {
 }
 
 void remove_process(pid_t pid) {
+    if (last_suspended_process == pid) {
+        last_suspended_process = -1;
+    }
+
     for (int i = 0; i < MAX_PROCESSES; ++i) {
         Process* p = processes[i];
         if (p != NULL && p->pid == pid) {

@@ -35,15 +35,8 @@ void init_handler() {
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = SA_RESTART;
 
-
-    // TODO: fix this place
-    if(sigaction(SIGINT, &sa, NULL) == -1) {
-        printf("Couldn't catch SIGINT - Interrupt Signal\n");
-    }
-
-    if(sigaction(SIGTSTP, &sa, NULL) == -1) {
-        printf("Couldn't catch SIGTSTP - Suspension Signal\n");
-    }
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGTSTP, &sa, NULL);
 }
 
 void wait_process(pid_t pid) {
@@ -109,14 +102,21 @@ int main() {
                 continue;
             }
 
-            process_in_fg = pid;
+            if (pid == -1) {
+                free_commands(parsed_commands);
+                continue;
+            }
+
             printf("PID: %d\n", pid);
             if (is_process_suspended(pid)) {
                 check(resume_process(pid));
             }
 
             if (streq(cmd, CMD_FG)) {
+                process_in_fg = pid;
                 wait_process(pid);
+            } else {
+                process_in_fg = -1;
             }
 
             free_commands(parsed_commands);
@@ -144,6 +144,7 @@ int main() {
             print_error(EXEC_ERROR);
             exit(1);
         } else if(pid > 0) {
+            setpgid(pid, pid);
             process_in_fg = pid;
             check(add_process(pid, command_buff));
             if (should_detach) {
