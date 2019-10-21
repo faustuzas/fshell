@@ -31,10 +31,14 @@ void signal_handler(int sig) {
 void init_handler() {
     struct sigaction sa;
 
+    // assign handler function
     sa.sa_handler = signal_handler;
+    // clear the mask of signals to handle
     sigemptyset(&sa.sa_mask);
+    // restart system functions if they were interrupted by the signal
     sa.sa_flags = SA_RESTART;
 
+    // add handling for signals
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTSTP, &sa, NULL);
 }
@@ -154,5 +158,7 @@ int main() {
                 wait_process(pid);
             }
         }
+
+        free_commands(parsed_commands);
     }
 }
