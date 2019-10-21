@@ -2,6 +2,7 @@
 #define PROCESSES_H
 
 #include <sys/types.h>
+
 #include "utils.h"
 
 Status add_process(pid_t pid, char* command);

@@ -12,7 +12,6 @@
 
 typedef struct process {
     pid_t pid;
-    int pipe_fds[2];
     p_status status;
     char* name;
 } Process;
@@ -119,8 +118,6 @@ Status resume_process(pid_t pid) {
             }
         }
 
-        last_suspended_process = pid;
-
         return OK;
     }
 
@@ -142,6 +139,10 @@ void remove_process(pid_t pid) {
 }
 
 Status kill_process(pid_t pid) {
+    if (last_suspended_process == pid) {
+        last_suspended_process = -1;
+    }
+
     if (kill(pid, SIGINT) == 0) {
         remove_process(pid);
         return OK;
